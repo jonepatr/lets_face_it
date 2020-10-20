@@ -1,0 +1,158 @@
+Conditioning:
+  cond_dim: 512
+  p1_face:
+    dropout: 0
+    enc: none
+    hidden_dim: 256
+    history: 5
+  p1_speech:
+    dropout: 0.5
+    enc: rnn
+    hidden_dim: 128
+    history: 2
+  p2_face:
+    dropout: 0.6
+    enc: rnn
+    hidden_dim: 256
+    history: 24
+  p2_speech:
+    dropout: 0.3
+    enc: rnn
+    hidden_dim: 256
+    history: 16
+  use_frame_nb: false
+Data:
+  expression_delta_dim: 0
+  expression_dim: 50
+  jaw_delta_dim: 0
+  jaw_dim: 3
+  neck_delta_dim: 0
+  neck_dim: 3
+  speech_dim: 30
+  use_standardization: true
+Glow:
+  K: 16
+  L: 1
+  LU_decomposed: true
+  actnorm_scale: 1.0
+  flow_coupling: affine
+  flow_permutation: invconv
+  hidden_channels: 128
+  rnn_type: gru
+  scale_eps: 0.0001
+Infer:
+  eps: 1
+  seq_len: 25
+Mismatch:
+  shuffle_batch:
+    all:
+    - p1_face
+    - p2_face
+    - p2_speech
+    p1_speech:
+    - p1_speech
+    p2:
+    - p2_face
+    - p2_speech
+    p2_face:
+    - p2_face
+    p2_speech:
+    - p2_speech
+  shuffle_time:
+    all_scrambled:
+    - p1_face
+    - p2_face
+    - p2_speech
+    p1_speech:
+    - p1_speech
+    p2:
+    - p2_face
+    - p2_speech
+    p2_face:
+    - p2_face
+    p2_speech:
+    - p2_speech
+Optim:
+  Schedule:
+    args:
+      lambda:
+        val: 10
+      multiplicative:
+        val: 10
+      step:
+        gamma: 0.7299182871057838
+        step_size: 3
+    name: step
+    warm_up: 3113
+  args:
+    adam:
+      betas:
+      - 0.9
+      - 0.9999
+      eps: 1.0e-08
+    rmsprop:
+      eps: 1.0e-08
+    sgd:
+      momentum: 0.9
+  name: adam
+Train:
+  data_file_name: train.hdf5
+  seq_len: 80
+  use_negative_nll_loss: true
+Validation:
+  check_invertion: false
+  data_file_name: val.hdf5
+  inference: true
+  render: true
+  scale_logging: true
+  seq_len: 100
+  teacher_forced_inference: false
+  wrong_context_test: true
+accumulate_grad_batches: 1
+amp_level: O1
+auto_lr_find: false
+auto_scale_batch_size: false
+auto_select_gpus: false
+batch_size: 256
+benchmark: true
+check_val_every_n_epoch: 1
+checkpoint_callback: true
+default_root_dir: null
+deterministic: true
+distributed_backend: null
+early_stop_callback: false
+fast_dev_run: false
+gradient_clip_val: 20
+log_gpu_memory: null
+log_save_interval: 100
+logger: true
+lr: 1.0e-05
+max_epochs: 30
+max_steps: null
+min_epochs: 1
+min_steps: null
+num_nodes: 1
+num_processes: 1
+num_sanity_val_steps: 1
+num_tpu_cores: null
+optuna: true
+overfit_pct: 0.0
+precision: 32
+print_nan_grads: false
+process_position: 0
+profiler: null
+progress_bar_callback: true
+progress_bar_refresh_rate: 1
+reload_dataloaders_every_epoch: false
+replace_sampler_ddp: true
+resume_from_checkpoint: null
+row_log_interval: 10
+terminate_on_nan: false
+test_percent_check: 1.0
+track_grad_norm: -1
+train_percent_check: 1.0
+truncated_bptt_steps: null
+val_check_interval: 1.0
+val_percent_check: 1.0
+weights_save_path: null
+weights_summary: top
