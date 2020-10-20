@@ -19,7 +19,8 @@ The results show that the model successfully leverages the input from the interl
 Coming soon!
 
 ## Video samples
-More video samples will be available soon, please see the short summary video in the meantime. 
+You can find some video samples that were used in the user studies [here](https://vimeo.com/showcase/7219185).
+More video samples with different model settings and sound will be available soon, please see the short summary video in the meantime for some more samples. 
 
 ## Citing
 ```
