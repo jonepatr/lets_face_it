@@ -3,6 +3,8 @@
 [![Video](https://img.youtube.com/vi/RhazMS4L_bk/maxresdefault.jpg)](https://youtu.be/RhazMS4L_bk)
 This repository contains a PyTorch based implementation of the framework for the paper "Let's face it: Probabilistic multi-modal interlocutor-aware generation of facial gestures in dyadic settings.", which was nominated for the Best Paper Award at IVA'20.
 
+Please read more on the [project website](https://jonepatr.github.io/lets_face_it/)
+
 
 ## Installations
 
