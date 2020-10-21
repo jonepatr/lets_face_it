@@ -1,3 +1,4 @@
+# Let’s Face It: Probabilistic Multi-modal Interlocutor-aware Generation of Facial Gestures in Dyadic Settings
 [Patrik Jonell](http://www.patrikjonell.se/), [Taras Kucherenko](https://svito-zar.github.io/), [Gustav Eje Henter](https://people.kth.se/~ghe/), and [Jonas Beskow](https://www.kth.se/profile/beskow)
 
 ## Short video summarizing the paper
