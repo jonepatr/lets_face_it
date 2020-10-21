@@ -1,6 +1,8 @@
 # Let's face it
 
-This repository contains code for the paper "Let's face it: Probabilistic multi-modal interlocutor-aware generation of facial gestures in dyadic settings." Jonell, P.; Kucherenko, T.; Henter, G., E.; and Beskow, J. IVA 2020.
+[![Video](https://img.youtube.com/vi/RhazMS4L_bk/maxresdefault.jpg)](https://youtu.be/RhazMS4L_bk)
+This repository contains a PyTorch based implementation of the framework for the paper "Let's face it: Probabilistic multi-modal interlocutor-aware generation of facial gestures in dyadic settings.", which was nominated for the Best Paper Award at IVA'20.
+
 
 ## Installations
 
