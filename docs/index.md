@@ -16,7 +16,7 @@ The results show that the model successfully leverages the input from the interl
 [Github repo](https://github.com/jonepatr/lets_face_it)
 
 ## FLAME Facial feature dataset
-[Available here](https://kth.box.com/shared/static/tap6b2m3dkxtb447bnmee8nv9uncvzwb.hdf5)
+[Available here](https://kth.box.com/shared/static/tap6b2m3dkxtb447bnmee8nv9uncvzwb.hdf5). The features are provided in 25fps.
 
 ## Video samples
 You can find some video samples that were used in the user studies [here](https://vimeo.com/showcase/7219185).
