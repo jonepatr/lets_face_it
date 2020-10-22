@@ -1,5 +1,5 @@
 ---
-redirect_to: "https://jonepatr.github.io/projects/lets_face_it/"
+redirect_to: "/projects/lets_face_it/"
 ---
 
 # Let’s Face It: Probabilistic Multi-modal Interlocutor-aware Generation of Facial Gestures in Dyadic Settings
