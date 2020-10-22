@@ -1,3 +1,3 @@
 ---
-redirect_to: "https://jonepatr.github.io/projects/lets_face_it/"
+redirect_to: "https://patrikjonell.se/projects/lets_face_it/"
 ---
