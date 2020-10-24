@@ -4,42 +4,49 @@ import tempfile
 from pathlib import Path
 
 import numpy as np
-
 import ffmpeg
 from fastapi import Body, FastAPI, Request
 from fastapi.responses import StreamingResponse
-from visualize.faces import render_double_face_video, get_vert2
+from visualize.render_tools import render_double_face_video, get_vertices
+import torch
+import os
+from uuid import uuid4
 
+os.environ["PYOPENGL_PLATFORM"] = "egl"
 app = FastAPI()
 
 VIDEO_DIR = "videos"
 
 
+def debyteify(x, key):
+    seqs = io.BytesIO()
+    seqs.write(x[key].encode("latin-1"))
+    seqs.seek(0)
+    return torch.from_numpy(np.load(seqs)).float()
+
+
+def get_vert(seq):
+    return get_vertices(
+        debyteify(seq, "expression"),
+        debyteify(seq, "pose"),
+        debyteify(seq, "rotation"),
+        shape=debyteify(seq, "shape"),
+    )
+
+
 @app.post("/render")
 def read_root(request: Request, data=Body(...)):
-    seqs = io.BytesIO()
-    seqs.write(data["seqs"].encode("latin-1"))
-    seqs.seek(0)
-    np_seqs = np.load(seqs)
-    file_name = VIDEO_DIR / Path(data["file_name"])
-
-    left_vert = get_vert2(
-        np_seqs[0],
-        exp_dim=data["exp_dim"],
-        jaw_dim=data["jaw_dim"],
-        neck_dim=data["neck_dim"],
-    )
-    right_vert = get_vert2(
-        np_seqs[1],
-        exp_dim=data["exp_dim"],
-        jaw_dim=data["jaw_dim"],
-        neck_dim=data["neck_dim"],
-    )
+    file_name = VIDEO_DIR / Path(data.get("file_name", str(uuid4())))
+    fps = data["fps"]
+    left_vert = get_vert(data["seqs"][0])
+    right_vert = get_vert(data["seqs"][1])
 
     with tempfile.NamedTemporaryFile(suffix=".mp4") as tmpf:
-        render_double_face_video(tmpf.name, left_vert, right_vert, fps=25)
+        render_double_face_video(tmpf.name, left_vert, right_vert, fps=fps)
         file_name.parent.mkdir(parents=True, exist_ok=True)
-        ffmpeg.input(tmpf.name).output(str(file_name), vcodec="h264").run(quiet=True)
+        ffmpeg.input(tmpf.name).output(str(file_name), vcodec="h264").run(
+            overwrite_output=True
+        )
     gc.collect()
     url = f"http://{request.url.netloc}/video/{file_name}"
     return {"url": url}

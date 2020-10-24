@@ -132,6 +132,6 @@ dmypy.json
 
 .vscode
 
-data/*.hdf5
-models
 config.local.toml
+models/*
+!models/empty

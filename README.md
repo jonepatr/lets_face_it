@@ -5,16 +5,9 @@ This repository contains code for the paper "Let's face it: Probabilistic multi-
 ## Installations
 
 1. Install Docker
-
 We recommend installing the latest version of the Docker as described [here](https://docs.docker.com/engine/install)
 
-2. Build the Docker image
-```
-docker build -f containers/glow_Dockerfile . -t lets_face_it_glow
-```
-
-3. Setup GPU usage for the docker
-
+2. Setup GPU usage for the docker
 By following the instructions in [the official tutorial](https://github.com/NVIDIA/nvidia-docker)
 
 
@@ -26,7 +19,12 @@ ________________________________________________________________________________
 
 ## Model training and testing
 
-1. Train the model
+1. Build the Docker image
+```
+docker build -f containers/glow_Dockerfile . -t lets_face_it_glow
+```
+
+2. Train the model
 ```
 docker run --gpus 1 -v <path/to/the/dataset>:/data lets_face_it_glow python code/glow_pytorch/train.py code/glow_pytorch/hparams/final_model.yaml
 ```
@@ -37,7 +35,23 @@ Most of the model parameters are defined in `code/glow_pytorch/hparams/final_mod
 Other configurations are set in `code/config.toml`
 
 
-## Feature extraction and rendering
+## Visualization
+1.  Build the docker
+Build the docker `docker build -f containers/visualize_Dockerfile . -t lets_face_it_visualize`
+
+2. Get the models
+  * Download FLAME model from [here](http://flame.is.tue.mpg.de). You need to sign up and agree to the model license for access to the model. Copy the downloaded model inside the models folder.
+  * Download Landmark embedings from [RingNet Project](https://github.com/soubhiksanyal/RingNet/tree/master/flame_model). Copy it inside the models folder.
+
+3. Run the render server
+`docker run -v $(pwd)/models:/workspace/models -it -p 8000:8000 lets_face_it_visualize`
+
+4. Try the example code
+There is some example code for rendering in `code/examples/visualize_example.py`. This  example assumes that you have downloade the [facial feature dataset](https://kth.box.com/shared/static/tap6b2m3dkxtb447bnmee8nv9uncvzwb.hdf5).
+After rendring you will get back a json response from the server with a URL which can be used to access the video.
+
+
+## Feature extraction
 Instructions coming in a few days!
 
 ## Citation
