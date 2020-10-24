@@ -17,9 +17,9 @@ tf_model = "models/ds_graph/output_graph.pb"
 ds_model = "models/voca/gstep_52280.model"
 
 [flame]
-model_path_generic = "models/flame_model/ch_models/generic_model.pkl"
-model_path_female = "models/flame_model/ch_models/female_model.pkl"
-model_path_male = "models/flame_model/ch_models/male_model.pkl"
+model_path_generic = "models/flame_model/FLAME2019/generic_model.pkl"
+model_path_female = "models/flame_model/FLAME2019/female_model.pkl"
+model_path_male = "models/flame_model/FLAME2019/male_model.pkl"
 static_landmark_embedding_path = "models/flame_model/flame_static_embedding.pkl"
 dynamic_landmark_embedding_path = "models/flame_model/flame_dynamic_embedding.npy"
 

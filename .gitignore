@@ -133,5 +133,7 @@ dmypy.json
 .vscode
 
 config.local.toml
-models/*
-!models/empty
+
+models/flame_model/*
+!models/flame_model/empty
+code/FLAME_PyTorch

@@ -44,8 +44,8 @@ Other configurations are set in `code/config.toml`
 Build the docker `docker build -f containers/visualize_Dockerfile . -t lets_face_it_visualize`
 
 2. Get the models
-  * Download FLAME model from [here](http://flame.is.tue.mpg.de). You need to sign up and agree to the model license for access to the model. Copy the downloaded model inside the models folder.
-  * Download Landmark embedings from [RingNet Project](https://github.com/soubhiksanyal/RingNet/tree/master/flame_model). Copy it inside the models folder.
+  * Download FLAME 2019 model from [here](http://flame.is.tue.mpg.de). You need to sign up and agree to the model license for access to the model. Copy the downloaded model inside the `models/flame_model` folder.
+  * Download Landmark embedings from [RingNet Project](https://github.com/soubhiksanyal/RingNet/tree/master/flame_model). Copy it inside the `models/flame_model` folder.
 
 3. Run the render server
 `docker run -v $(pwd)/models:/workspace/models -it -p 8000:8000 lets_face_it_visualize`
