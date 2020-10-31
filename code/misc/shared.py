@@ -25,6 +25,7 @@ if config_local_path.exists():
 RANDOM_SEED = CONFIG["project"]["random_seed"]
 DATA_DIR = Path(CONFIG["project"]["data_dir"])
 BASE_DIR = Path(CONFIG["project"]["base_dir"])
+DATASET_DIR = DATA_DIR / "dataset"
 
 flame_config = namedtuple(
     "Config",

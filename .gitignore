@@ -134,6 +134,10 @@ dmypy.json
 
 config.local.toml
 
-models/flame_model/*
-!models/flame_model/empty
+models/*
+!models/empty
 code/FLAME_PyTorch
+code/TF_FLAME
+code/voca
+code/RingNet
+code/mesh

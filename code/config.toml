@@ -12,14 +12,18 @@ train_ratio = 0.83
 validation_ratio = 0.1
 test_ratio = 0.07
 
+[ringnet]
+model = "models/ringnet/ring_6_68641"
+
 [voca]
-tf_model = "models/ds_graph/output_graph.pb"
-ds_model = "models/voca/gstep_52280.model"
+ds_model = "models/ds_graph/output_graph.pb"
+tf_model = "models/voca/gstep_52280.model"
 
 [flame]
 model_path_generic = "models/flame_model/FLAME2019/generic_model.pkl"
 model_path_female = "models/flame_model/FLAME2019/female_model.pkl"
 model_path_male = "models/flame_model/FLAME2019/male_model.pkl"
+template_mesh = "models/flame_model/FLAME_sample.ply"
 static_landmark_embedding_path = "models/flame_model/flame_static_embedding.pkl"
 dynamic_landmark_embedding_path = "models/flame_model/flame_dynamic_embedding.npy"
 
