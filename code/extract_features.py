@@ -1,10 +1,15 @@
+import ray
+
+ray.init(num_gpus=2, num_cpus=16, log_to_driver=False)
+
 from feature_extraction.audio_utils import (
     extract_mfcc,
     extract_prosody,
     extract_vad,
     split_audio_channels,
-    chunk_audio
+    chunk_audio,
 )
+from feature_extraction.flame import extract_flame
 from feature_extraction.openface import extract_openface
 from feature_extraction.ringnet import extract_neutral_mesh, extract_ringnet
 from feature_extraction.video_utils import (
@@ -12,6 +17,7 @@ from feature_extraction.video_utils import (
     extract_imgs_from_videos,
 )
 from feature_extraction.voca import extract_voca
+
 
 fps = 25
 
@@ -31,3 +37,6 @@ extract_ringnet(fps)
 
 extract_neutral_mesh(fps)
 extract_voca(fps)
+
+print("this will take a long time.......")
+extract_flame(fps)

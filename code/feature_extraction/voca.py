@@ -3,14 +3,124 @@ import os
 
 import numpy as np
 import scipy.signal
-import tensorflow as tf
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+import warnings
+
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=FutureWarning)
+    import tensorflow as tf
+    from tensorflow.contrib.opt.python.training.external_optimizer import (
+        ScipyOptimizerInterface,
+    )
 from misc.shared import BASE_DIR, CONFIG, DATASET_DIR
 from psbody.mesh import Mesh
 from scipy.io import wavfile
+
+from TF_FLAME.tf_smpl.batch_smpl import SMPL
 from tqdm import tqdm
 
 from feature_extraction.shared import count_video_frames
 from voca.utils.audio_handler import AudioHandler
+
+
+class MeshFitter:
+    def __init__(self, template_fname):
+        tf.compat.v1.reset_default_graph()
+        tf.keras.backend.clear_session()
+        weights = {}
+        # Weight of the data term
+        weights["data"] = 1000.0
+        # Weight of the shape regularizer (the lower, the less shape is constrained)
+        weights["shape"] = 1e-4
+        # Weight of the expression regularizer (the lower, the less expression is constrained)
+        weights["expr"] = 1e-4
+        # Weight of the neck pose (i.e. neck rotationh around the neck) regularizer (the lower, the less neck pose is constrained)
+        weights["neck_pose"] = 1e-4
+        # Weight of the jaw pose (i.e. jaw rotation for opening the mouth) regularizer (the lower, the less jaw pose is constrained)
+        weights["jaw_pose"] = 1e-4
+        # Weight of the eyeball pose (i.e. eyeball rotations) regularizer (the lower, the less eyeballs pose is constrained)
+        weights["eyeballs_pose"] = 1e-4
+
+        self.tf_trans = tf.Variable(
+            np.zeros((1, 3)), name="trans", dtype=tf.float64, trainable=True
+        )
+        self.tf_rot = tf.Variable(
+            np.zeros((1, 3)), name="pose", dtype=tf.float64, trainable=True
+        )
+        self.tf_pose = tf.Variable(
+            np.zeros((1, 12)), name="pose", dtype=tf.float64, trainable=True
+        )
+        self.tf_shape = tf.Variable(
+            np.zeros((1, 300)), name="shape", dtype=tf.float64, trainable=True
+        )
+        self.tf_exp = tf.Variable(
+            np.zeros((1, 100)), name="expression", dtype=tf.float64, trainable=True
+        )
+        smpl = SMPL(template_fname)
+        tf_model = tf.squeeze(
+            smpl(
+                self.tf_trans,
+                tf.concat((self.tf_shape, self.tf_exp), axis=-1),
+                tf.concat((self.tf_rot, self.tf_pose), axis=-1),
+            )
+        )
+
+        # self.target_mesh = tf.placeholder(tf.float64, shape=tf_model.shape, name="target_mesh")
+        self.target_mesh = tf.Variable(tf.zeros_like(tf_model))
+
+        mesh_dist = tf.reduce_sum(tf.square(tf.subtract(tf_model, self.target_mesh)))
+        neck_pose_reg = tf.reduce_sum(tf.square(self.tf_pose[:3]))
+        jaw_pose_reg = tf.reduce_sum(tf.square(self.tf_pose[3:6]))
+        eyeballs_pose_reg = tf.reduce_sum(tf.square(self.tf_pose[6:]))
+        shape_reg = tf.reduce_sum(tf.square(self.tf_shape))
+        exp_reg = tf.reduce_sum(tf.square(self.tf_exp))
+
+        self.optimizer1 = ScipyOptimizerInterface(
+            loss=mesh_dist,
+            var_list=[self.tf_trans, self.tf_rot],
+            method="BFGS",
+            options={"disp": 0},
+        )
+
+        loss = (
+            weights["data"] * mesh_dist
+            + weights["shape"] * shape_reg
+            + weights["expr"] * exp_reg
+            + weights["neck_pose"] * neck_pose_reg
+            + weights["jaw_pose"] * jaw_pose_reg
+            + weights["eyeballs_pose"] * eyeballs_pose_reg
+        )
+
+        self.optimizer2 = ScipyOptimizerInterface(
+            loss=loss,
+            var_list=[self.tf_trans, self.tf_pose, self.tf_shape, self.tf_exp],
+            method="BFGS",
+            options={"disp": 0},
+        )
+
+    def fit(self, target_mesh, dest_path):
+        config = tf.compat.v1.ConfigProto()
+        config.gpu_options.allow_growth = True
+        config.graph_options.optimizer_options.global_jit_level = (
+            tf.compat.v1.OptimizerOptions.OFF
+        )
+        with tf.compat.v1.Session(config=config) as session:
+            session.run(tf.compat.v1.global_variables_initializer())
+            vertices = target_mesh.astype(np.float64)
+            self.optimizer1.minimize(session, feed_dict={self.target_mesh: vertices})
+            self.optimizer2.minimize(session, feed_dict={self.target_mesh: vertices})
+
+            return [
+                dest_path,
+                {
+                    "tf_trans": self.tf_trans.eval(),
+                    "tf_rot": self.tf_rot.eval(),
+                    "tf_pose": self.tf_pose.eval(),
+                    "tf_shape": self.tf_shape.eval(),
+                    "tf_exp": self.tf_exp.eval(),
+                },
+            ]
 
 
 class VocaModel:
