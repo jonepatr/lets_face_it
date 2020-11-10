@@ -1,4 +1,3 @@
-import os
 import random
 import shutil
 import tempfile
@@ -13,8 +12,6 @@ import trimesh
 from FLAME_PyTorch.FLAME import FLAME
 from misc.shared import BASE_DIR, CONFIG, flame_config
 from tqdm import tqdm
-
-os.environ["PYOPENGL_PLATFORM"] = "egl"
 
 
 class RenderContext(object):

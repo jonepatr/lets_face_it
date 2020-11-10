@@ -2,7 +2,7 @@ FROM nvidia/cudagl:10.1-runtime
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 RUN apt-get update
-RUN DEBIAN_FRONTEND="noninteractive" apt-get -y install freeglut3-dev python3.7 python3-pip python3-opencv ffmpeg git
+RUN DEBIAN_FRONTEND="noninteractive" apt-get -y install freeglut3-dev python3.7 python3-pip python3-opencv ffmpeg git libosmesa6-dev
 RUN  mkdir -p /workspace/code/
 RUN git clone https://github.com/jonepatr/FLAME_PyTorch.git /workspace/code/FLAME_PyTorch
 WORKDIR /workspace

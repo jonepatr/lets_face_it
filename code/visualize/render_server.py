@@ -1,18 +1,28 @@
 import gc
 import io
+import os
+import subprocess
 import tempfile
 from pathlib import Path
-
-import numpy as np
-import ffmpeg
-from fastapi import Body, FastAPI, Request
-from fastapi.responses import StreamingResponse
-from visualize.render_tools import render_double_face_video, get_vertices
-import torch
-import os
 from uuid import uuid4
 
-os.environ["PYOPENGL_PLATFORM"] = "egl"
+import ffmpeg
+import numpy as np
+import torch
+from fastapi import Body, FastAPI, Request
+from fastapi.responses import StreamingResponse
+
+try:
+    subprocess.check_call(
+        ["python3", Path(__file__).parent / "test_egl.py"], stderr=subprocess.DEVNULL
+    )
+    os.environ["PYOPENGL_PLATFORM"] = "egl"
+except subprocess.CalledProcessError:
+    print("Could not use EGL (GPU support), falling back on using CPU")
+    os.environ["PYOPENGL_PLATFORM"] = "osmesa"
+
+from visualize.render_tools import get_vertices, render_double_face_video
+
 app = FastAPI()
 
 VIDEO_DIR = "videos"
