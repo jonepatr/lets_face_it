@@ -50,6 +50,7 @@ class LetsFaceItGlow(LightningModule):
             loss *= -0.1
         else:
             _, loss, _ = self.seq_glow(batch)
+        self.log("train_loss", loss)
         return loss
 
     def validation_step(self, batch, batch_idx):
