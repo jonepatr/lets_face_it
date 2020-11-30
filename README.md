@@ -60,7 +60,9 @@ After rendring you will get back a json response from the server with a URL whic
 
 
 ## Feature extraction
-Instructions coming in a few days!
+```
+python code/fextract_features.py
+```
 
 ## Citation
 If you use this code in your research please cite the paper:
