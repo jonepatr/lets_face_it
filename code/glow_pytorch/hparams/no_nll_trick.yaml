@@ -5,6 +5,7 @@ Conditioning:
     enc: none
     hidden_dim: 256
     history: 5
+    dim: 56
   p1_speech:
     dropout: 0.5
     enc: rnn
@@ -15,6 +16,7 @@ Conditioning:
     enc: rnn
     hidden_dim: 256
     history: 24
+    dim: 56
   p2_speech:
     dropout: 0.3
     enc: rnn
@@ -22,6 +24,7 @@ Conditioning:
     history: 16
   use_frame_nb: false
 Data:
+  file_name: lets_face_it.h5
   expression_delta_dim: 0
   expression_dim: 50
   jaw_delta_dim: 0
@@ -96,12 +99,10 @@ Optim:
       momentum: 0.9
   name: adam
 Train:
-  data_file_name: train.hdf5
   seq_len: 80
   use_negative_nll_loss: false
 Validation:
   check_invertion: false
-  data_file_name: val.hdf5
   inference: true
   render: true
   scale_logging: true

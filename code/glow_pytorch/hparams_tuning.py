@@ -5,6 +5,7 @@ import shutil
 import socket
 from argparse import ArgumentParser, Namespace
 from pprint import pprint
+from glow_pytorch.glow.utils import calc_jerk, get_longest_history
 
 import numpy as np
 import optuna
@@ -33,17 +34,61 @@ class MyEarlyStopping(PyTorchLightningPruningCallback):
         self.best_loss = torch.tensor(np.Inf)
         self.wait = 0
         self.patience = patience
+        self.jerk_generated_means = []
 
-    def on_epoch_end(self, trainer, pl_module):
-        super().on_epoch_end(trainer, pl_module)
-        jerk = trainer.callback_metrics.get("jerk/generated_mean")
-        val_loss = trainer.callback_metrics.get("val_loss")
+    def on_train_batch_end(
+        self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx
+    ):
+        super().on_validation_batch_end(
+            trainer, pl_module, outputs, batch, batch_idx, dataloader_idx
+        )
+        if pl_module.global_step > 20 and outputs > 0:
+            message = f"Trial was pruned since loss > 0"
+            raise optuna.exceptions.TrialPruned(message)
+
+    def on_validation_epoch_start(self, trainer, pl_module):
+        self.jerk_generated_means = []
+
+    def on_validation_batch_end(
+        self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx
+    ):
+        super().on_validation_batch_end(
+            trainer, pl_module, outputs, batch, batch_idx, dataloader_idx
+        )
+        seq_len = pl_module.hparams.Validation["seq_len"]
+        new_batch = {x: y.type_as(outputs) for x, y in batch.items()}
+        cond_data = {
+            "p1_face": new_batch["p1_face"][
+                :, : get_longest_history(pl_module.hparams.Conditioning)
+            ],
+            "p2_face": new_batch.get("p2_face"),
+            "p1_speech": new_batch.get("p1_speech"),
+            "p2_speech": new_batch.get("p2_speech"),
+        }
+        predicted_seq = pl_module.seq_glow.inference(seq_len, data=cond_data)
+        self.jerk_generated_means.append(calc_jerk(predicted_seq))
+
+        if pl_module.global_step > 20 and outputs > 0:
+            message = f"Trial was pruned since loss > 0"
+            raise optuna.exceptions.TrialPruned(message)
+
+    def on_validation_epoch_end(
+        self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx
+    ):
+        super().on_validation_epoch_end(
+            trainer, pl_module, outputs, batch, batch_idx, dataloader_idx
+        )
+        jerk_generated_mean = torch.stack(self.jerk_generated_means).mean()
+        val_loss = torch.stack(outputs).mean()
+
+        if jerk_generated_mean > 10 and pl_module.global_step > 20:
+            message = f"Trial was pruned since jerk > 5"
+            raise optuna.exceptions.TrialPruned(message)
+
         if val_loss is not None and val_loss > 0:
             message = f"Trial was pruned because val loss was too high {val_loss}."
             raise optuna.exceptions.TrialPruned(message)
-        if jerk is not None and jerk > 10:
-            message = f"Trial was pruned because jerk was too high {jerk}."
-            raise optuna.exceptions.TrialPruned(message)
+
         if val_loss < self.best_loss:
             self.best_loss = val_loss
             self.wait = 0
@@ -97,7 +142,7 @@ def run(hparams, return_dict, trial, batch_size, current_date):
 
     trainer_params = vars(hparams).copy()
     trainer_params["checkpoint_callback"] = pl.callbacks.ModelCheckpoint(
-        save_top_k=3, monitor="save_loss", mode="min"
+        save_top_k=3, monitor="val_loss", mode="min"
     )
 
     if CONFIG["comet"]["api_key"]:
@@ -146,7 +191,8 @@ def objective(trial):
 
         return_dict = manager.dict()
         p = multiprocessing.Process(
-            target=run, args=(hparams, return_dict, trial, batch_size, current_date),
+            target=run,
+            args=(hparams, return_dict, trial, batch_size, current_date),
         )
         p.start()
         p.join()

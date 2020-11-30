@@ -11,7 +11,7 @@ def test(model_path, file_name):
     model = LetsFaceItGlow.load_from_checkpoint(
         model_path,
         dataset_root=str(DATA_DIR),
-        test={"seq_len": 100, "data_file_name": "test.hdf5"},
+        test={"seq_len": 100},
     )
     model.hparams.batch_size = 33000
     trainer = Trainer(gpus=1, single_gpu=True, num_sanity_val_steps=0)

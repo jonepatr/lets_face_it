@@ -1,3 +1,5 @@
+from glow_pytorch.glow.modules import GaussianDiag
+from glow_pytorch.glow.utils import get_longest_history
 import numpy as np
 import torch
 import torch.nn as nn
@@ -90,19 +92,18 @@ class FeatureEncoder(nn.Module):
 
         frame_nb_dim = 1 if self.use_frame_nb else 0
 
-        face_dim = utils.face_dim(data_hparams)
         speech_dim = data_hparams["speech_dim"]
 
         # Define conditioning for P1 face
         self.p1_face_encoder = ModalityEncoder(
-            face_dim, conditioning_hparams["p1_face"]
+            conditioning_hparams["p1_face"]["dim"], conditioning_hparams["p1_face"]
         )
         self.dim = self.p1_face_encoder.dim
 
         # Define conditioning for P2 face
         if self.p2_face_history:
             self.p2_face_encoder = ModalityEncoder(
-                face_dim, conditioning_hparams["p2_face"]
+                conditioning_hparams["p2_face"]["dim"], conditioning_hparams["p2_face"]
             )
             self.dim += self.p2_face_encoder.dim
 
@@ -174,15 +175,18 @@ class f_seq(nn.Module):
 
         if rnn_type == "gru":
             self.rnn = nn.GRUCell(
-                input_size=input_size + cond_dim, hidden_size=hidden_size,
+                input_size=input_size + cond_dim,
+                hidden_size=hidden_size,
             )
         elif rnn_type == "lstm":
             self.rnn = nn.LSTMCell(
-                input_size=input_size + cond_dim, hidden_size=hidden_size,
+                input_size=input_size + cond_dim,
+                hidden_size=hidden_size,
             )
 
         self.cond_transform = nn.Sequential(
-            nn.Linear(feature_encoder_dim, cond_dim), nn.LeakyReLU(),
+            nn.Linear(feature_encoder_dim, cond_dim),
+            nn.LeakyReLU(),
         )
 
         self.final_linear = modules.LinearZeros(hidden_size, output_size)
@@ -191,7 +195,7 @@ class f_seq(nn.Module):
 
     def init_rnn_hidden(self):
         """
-        Setting it to None is the same as zeros, 
+        Setting it to None is the same as zeros,
         except now we don't need to know any sizes
         """
         self.hidden = None
@@ -467,7 +471,7 @@ class Glow(nn.Module):
     def __init__(self, hparams, feature_encoder_dim=0):
         super().__init__()
         self.flow = FlowNet(
-            C=utils.face_dim(hparams.Data),
+            C=hparams.Conditioning["p1_face"]["dim"],
             hidden_channels=hparams.Glow["hidden_channels"],
             cond_dim=hparams.Conditioning["cond_dim"],
             K=hparams.Glow["K"],
@@ -515,3 +519,127 @@ class Glow(nn.Module):
 
     def init_rnn_hidden(self):
         self.flow.init_rnn_hidden()
+
+
+class SeqGlow(nn.Module):
+    def __init__(self, hparams) -> None:
+        super().__init__()
+        self.hparams = hparams
+
+        self.feature_encoder = FeatureEncoder(
+            self.hparams.Conditioning, self.hparams.Data
+        )
+        self.glow = Glow(hparams, self.feature_encoder.dim)
+
+    def forward(self, batch):
+        self.glow.init_rnn_hidden()
+
+        loss = 0
+        start_ts = get_longest_history(self.hparams.Conditioning)
+
+        frame_nb = None
+        if self.hparams.Conditioning["use_frame_nb"]:
+            frame_nb = batch["frame_nb"].clone() + start_ts * 2
+
+        z_seq = []
+        losses = []
+        for time_st in range(start_ts, batch["p1_face"].shape[1]):
+            curr_input = batch["p1_face"][:, time_st, :]
+            condition = self.create_conditioning(
+                batch, time_st, frame_nb, batch["p1_face"]
+            )
+
+            z_enc, objective = self.glow(x=curr_input, condition=condition)
+            tmp_loss = self.loss(objective, z_enc)
+            losses.append(tmp_loss.cpu().detach())
+            loss += torch.mean(tmp_loss)
+
+            if self.hparams.Conditioning["use_frame_nb"]:
+                frame_nb += 2
+            z_seq.append(z_enc.detach())
+
+        return z_seq, (loss / len(z_seq)).unsqueeze(-1), losses
+
+    def loss(self, objective, z):
+        objective += GaussianDiag.logp_simplified(z)
+        return (-objective) / float(np.log(2.0))
+
+    def inference(self, seq_len, data=None):
+        self.glow.init_rnn_hidden()
+
+        output_shape = torch.zeros_like(data["p1_face"][:, 0, :])
+        frame_nb = None
+        if self.hparams.Conditioning["use_frame_nb"]:
+            frame_nb = torch.ones((data["p1_face"].shape[0], 1)).type_as(
+                data["p1_face"]
+            )
+
+        prev_p1_faces = data["p1_face"]
+
+        start_ts = get_longest_history(self.hparams.Conditioning)
+
+        for time_st in range(start_ts, seq_len):
+            condition = self.create_conditioning(data, time_st, frame_nb, prev_p1_faces)
+
+            output, _ = self.glow(
+                condition=condition,
+                eps_std=self.hparams.Infer["eps"],
+                reverse=True,
+                output_shape=output_shape,
+            )
+
+            prev_p1_faces = torch.cat([prev_p1_faces, output.unsqueeze(1)], dim=1)
+
+            if self.hparams.Conditioning["use_frame_nb"]:
+                frame_nb += 2
+
+        return prev_p1_faces[:, start_ts:]
+
+    def create_conditioning(self, data, time_st, frame_nb, prev_p1_faces):
+        p1_prev_face_history = self.hparams.Conditioning["p1_face"]["history"]
+
+        output = {
+            "prev_p1_face": prev_p1_faces[:, time_st - p1_prev_face_history : time_st]
+        }
+
+        for modality in ["p1_speech", "p2_speech", "p2_face"]:
+            history = self.hparams.Conditioning[modality]["history"]
+            if history:
+                output[modality] = data[modality][
+                    :, (time_st - history) + 1 : time_st + 1
+                ]
+
+        if self.hparams.Conditioning["use_frame_nb"]:
+            output["frame_nb"] = frame_nb
+
+        return self.feature_encoder(output)
+
+    def invert(self, z_seq, data):
+        start_ts = get_longest_history(self.hparams.Conditioning)
+        reconstr_seq = []
+
+        self.glow.init_rnn_hidden()
+        backward_loss = 0
+        frame_nb = None
+        if self.hparams.Conditioning["use_frame_nb"]:
+            frame_nb = data["frame_nb"].clone() + start_ts * 2
+
+        for time_st, z_enc in enumerate(z_seq):
+            condition = self.create_conditioning(
+                data, start_ts + time_st, frame_nb, data["p1_face"]
+            )
+
+            reconstr, backward_objective = self.glow(
+                z=z_enc, condition=condition, eps_std=1, reverse=True
+            )
+            backward_loss += torch.mean(
+                self.loss(backward_objective, z_enc)
+            )  # , x.size(1)
+
+            if self.hparams.Conditioning["use_frame_nb"]:
+                frame_nb += 2
+
+            reconstr_seq.append(reconstr.detach())
+
+        backward_loss = (backward_loss / len(z_seq)).unsqueeze(-1)
+        return reconstr_seq, backward_loss

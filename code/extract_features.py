@@ -1,13 +1,16 @@
+from code.feature_extraction.combine_features import combine_features
 import ray
 
 ray.init(num_gpus=2, num_cpus=16, log_to_driver=False)
 
+import argparse
+
 from feature_extraction.audio_utils import (
+    chunk_audio,
     extract_mfcc,
     extract_prosody,
     extract_vad,
     split_audio_channels,
-    chunk_audio,
 )
 from feature_extraction.flame import extract_flame
 from feature_extraction.openface import extract_openface
@@ -18,6 +21,8 @@ from feature_extraction.video_utils import (
 )
 from feature_extraction.voca import extract_voca
 
+parser = argparse.ArgumentParser()
+args = parser.parse_args()
 
 fps = 25
 
@@ -40,3 +45,5 @@ extract_voca(fps)
 
 print("this will take a long time.......")
 extract_flame(fps)
+
+combine_features(fps)

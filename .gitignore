@@ -141,3 +141,6 @@ code/TF_FLAME
 code/voca
 code/RingNet
 code/mesh
+lightning_logs
+checkpoints
+comet_log_dir

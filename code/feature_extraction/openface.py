@@ -5,7 +5,6 @@ from io import BytesIO
 from pathlib import Path
 
 import docker
-import numpy as np
 from misc.shared import DATASET_DIR
 from tqdm import tqdm
 
@@ -41,7 +40,9 @@ def extract_openface(fps):
 
                 with tempfile.TemporaryDirectory() as tmpd:
                     tar.extract(output_file.name, tmpd)
-                    shutil.move(Path(tmpd) / output_file.name, openface_file)
+                    tmp_open_face_file = Path(tmpd) / output_file.name
+                    openface_file.write_text(tmp_open_face_file.read_text().replace(", ", ","))
+
             finally:
                 ctnr.stop()
             exit()

@@ -52,17 +52,16 @@ def hparam_options(hparams, trial):
         }
 
     face_hist = [2, 4, 8, 16, 24]
-    face_dim = hparams.Data["expression_dim"] + 6
     face_hidden = [128, 256, 512]
 
     speech_hist = [2, 4, 8, 16]
     speech_dim = 30
     speech_hidden = [64, 128, 256]
     hparams.Conditioning["p1_face"] = enc_fixer(
-        "p1_face", face_hist, face_hidden, face_dim
+        "p1_face", face_hist, face_hidden, hparams.Conditioning["p1_face"]["dim"]
     )
     hparams.Conditioning["p2_face"] = enc_fixer(
-        "p2_face", face_hist, face_hidden, face_dim
+        "p2_face", face_hist, face_hidden, hparams.Conditioning["p2_face"]["dim"]
     )
     hparams.Conditioning["p1_speech"] = enc_fixer(
         "p1_speech", speech_hist, speech_hidden, speech_dim

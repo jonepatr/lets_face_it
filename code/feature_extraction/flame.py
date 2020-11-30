@@ -1,4 +1,6 @@
+import csv
 import os
+from collections import defaultdict
 
 import h5py
 import numpy as np
@@ -241,10 +243,12 @@ class FrameOptimizer(object):
 
 def extract_flame(fps):
     files = list(DATASET_DIR.glob(f"*/*/video_{fps}fps.mp4"))
-    results = []
     for i, video_file in enumerate(
         tqdm(files, desc="Extracting flame parameters", leave=False)
     ):
+        flame_h5_file = video_file.parent / f"flame_{fps}fps.h5"
+        if flame_h5_file.exists():
+            continue
         flame_dir = video_file.parent / f"flame_{fps}fps"
         gender = get_gender(video_file.parent.parent.name, video_file.parent.name)
         template_path = BASE_DIR / CONFIG["flame"][f"model_path_{gender}"]
@@ -262,11 +266,10 @@ def extract_flame(fps):
         pool = ActorPool(
             [
                 FrameOptimizer.remote(neutral_mesh_faces, template_path)
-                for _ in range(32)
+                for _ in range(8)
             ]
         )
-
-        openface_data = list(openface_file.read_text().split("\n"))[1:]
+        openface_data = list(csv.reader(openface_file.open()))[1:]
         data = f["pose"], f["shape"], f["expression"], openface_data
         flame_dir.mkdir(parents=True, exist_ok=True)
         runners = []
@@ -276,7 +279,7 @@ def extract_flame(fps):
                 continue
 
             # Get 68 facial landmarks
-            landmarks = [float(x) for x in openface.split(", ")[299:435]]
+            landmarks = [float(x) for x in openface[299:435]]
             # reshape the landmarks so that they are 2x51 (cut of the jaw (17 landmarks))
             target_2d_lmks = np.array(landmarks).reshape(2, -1).T[17:]
             runners.append((pose, shape, expression, target_2d_lmks, flame_file))
@@ -287,3 +290,14 @@ def extract_flame(fps):
             leave=False,
         ):
             np.save(file_name, flame_params)
+        
+        np_files = list(flame_dir.glob("*.npy"))
+        assert len(np_files) == len(openface_data)
+        
+        results = defaultdict(list)
+        for file in flame_dir.glob("*.npy"):
+            for key, value in np.load(file, allow_pickle=True).item().items():
+                results[key].append(value)
+        with h5py.File(flame_h5_file, "w") as f:
+            for key, value in results.items():
+                f.create_dataset(key, data=np.vstack(value))
