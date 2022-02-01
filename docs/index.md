@@ -17,7 +17,7 @@ This paper received the Best Paper Award at IVA'20.
 
 ## Short video summarizing the paper
 <div class="video-container">
-<iframe height="auto" width=640 src="https://www.youtube.com/embed/RhazMS4L_bk" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe width=640 src="https://www.youtube.com/embed/RhazMS4L_bk" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </div>
 <br>
 <br>
