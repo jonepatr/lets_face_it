@@ -17,7 +17,7 @@ This paper received the Best Paper Award at IVA'20.
 
 ## Short video summarizing the paper
 <div class="video-container">
-<iframe width=640 src="https://www.youtube.com/embed/RhazMS4L_bk" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe src="https://www.youtube.com/embed/RhazMS4L_bk" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </div>
 <br>
 <br>
@@ -26,7 +26,7 @@ To enable more natural face-to-face interactions, conversational agents need to 
 The results show that the model successfully leverages the input from the interlocutor to generate more appropriate behavior.
 
 <h2 id="data" style="padding-top: 60px; ">FLAME facial feature dataset</h2>
-Please contact me via email to get access to the dataset.
+Please contact me via email  to get access to the dataset.
 <br><br>
 The dataset is 6.4GB and the features are provided in 25fps. <br>
 The data is organized in the following structure: \
