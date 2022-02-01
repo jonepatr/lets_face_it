@@ -1,26 +1,23 @@
 ---
-layout: distill_project
-title: Let's Face It
-description: Probabilistic Multi-modal Interlocutor-aware Generation of Facial Gestures in Dyadic Settings
-img: /assets/img/lets_face_it.png
-
 # redirect_to: "https://patrikjonell.se/projects/lets_face_it/"
-
 ---
+<h1>Let's Face It</h1>
+<h3>Probabilistic Multi-modal Interlocutor-aware Generation of Facial Gestures in Dyadic Settings</h3>
+
 This paper received the Best Paper Award at IVA'20.
 
 <div class="row">
-<div class="col-sm-3"><a href="https://doi.org/10.1145/3383652.3423911" class="btn"><i class="far fa-file-pdf"></i> The Paper</a></div>
-<div class="col-sm-3"><a href="https://github.com/jonepatr/lets_face_it" target="_blank" class="btn"><i class="fab fa-github-square"></i> Code</a></div>
-<div class="col-sm-3"><a href="#data" class="btn"><i class="fas fa-database"></i> Data</a></div>
-<div class="col-sm-3"><a href="#video-samples" class="btn" style="font-size: 12px"><i class="fas fa-video"></i> Samples</a></div>
+<div class="col-sm-3"><a href="https://doi.org/10.1145/3383652.3423911" class="btn">The Paper</a></div>
+<div class="col-sm-3"><a href="https://github.com/jonepatr/lets_face_it" target="_blank" class="btn">Code</a></div>
+<div class="col-sm-3"><a href="#data">Data</a></div>
+<div class="col-sm-3"><a href="#video-samples">Samples</a></div>
 </div>
 
 
 
 ## Short video summarizing the paper
 <div class="video-container">
-<iframe height="auto" src="https://www.youtube.com/embed/RhazMS4L_bk" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe height="auto" width=640 src="https://www.youtube.com/embed/RhazMS4L_bk" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </div>
 <br>
 <br>
