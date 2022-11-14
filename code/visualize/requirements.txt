@@ -16,7 +16,7 @@ keyrings.alt==3.0
 -e /workspace/code
 networkx==2.5
 numpy==1.22.0
-Pillow==8.0.1
+Pillow==9.0.1
 pycrypto==2.6.1
 pydantic==1.6.1
 pyglet==1.5.8
