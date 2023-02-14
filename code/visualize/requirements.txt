@@ -28,7 +28,7 @@ scipy==1.5.3
 SecretStorage==2.3.1
 six==1.11.0
 smplx==0.1.26
-starlette==0.13.6
+starlette==0.25.0
 toml==0.10.1
 torch==1.4.0
 torchgeometry==0.1.2
